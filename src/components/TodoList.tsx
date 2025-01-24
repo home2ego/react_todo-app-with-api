@@ -1,6 +1,7 @@
 // #region imports
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { Todo } from '../types/Todo';
+import { Todo, TodoUpdate } from '../types/Todo';
+import { DEFAULT_ID } from '../constants/DEFAULT_ID';
 import TodoItem from './TodoItem';
 // #endregion
 
@@ -8,17 +9,17 @@ import TodoItem from './TodoItem';
 type Props = {
   filteredTodos: Todo[];
   tempTodo: Todo | null;
-  onDelete: (todoId: number[]) => void;
-  isLoading: boolean;
+  onDelete: (todoId: [number]) => void;
+  onUpdate: (todoDataUpdate: [TodoUpdate]) => void;
   loadingTodoIds: number[];
 };
 // #endregion
 
 export default function TodoList({
   filteredTodos,
-  onDelete,
   tempTodo,
-  isLoading,
+  onDelete,
+  onUpdate,
   loadingTodoIds,
 }: Props) {
   return (
@@ -29,6 +30,7 @@ export default function TodoList({
             <TodoItem
               todo={todo}
               onDelete={onDelete}
+              onUpdate={onUpdate}
               isLoading={loadingTodoIds.includes(todo.id)}
             />
           </CSSTransition>
@@ -36,7 +38,10 @@ export default function TodoList({
 
         {tempTodo && (
           <CSSTransition key={0} timeout={300} classNames="temp-item">
-            <TodoItem todo={tempTodo} isLoading={isLoading} />
+            <TodoItem
+              todo={tempTodo}
+              isLoading={loadingTodoIds.includes(DEFAULT_ID)}
+            />
           </CSSTransition>
         )}
       </TransitionGroup>

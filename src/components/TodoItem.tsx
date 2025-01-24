@@ -3,13 +3,14 @@
 
 // #region imports
 import cn from 'classnames';
-import { Todo } from '../types/Todo';
+import { Todo, TodoUpdate } from '../types/Todo';
 // #endregion
 
 // #region type Props
 type Props = {
   todo: Todo;
-  onDelete?: (todoId: number[]) => void;
+  onDelete?: (todoId: [number]) => void;
+  onUpdate?: (todoDataUpdate: [TodoUpdate]) => void;
   isLoading: boolean;
 };
 // #endregion
@@ -17,8 +18,18 @@ type Props = {
 export default function TodoItem({
   todo,
   onDelete = () => {},
+  onUpdate = () => {},
   isLoading,
 }: Props) {
+  function handleUpdateChange(id: number, completed: boolean) {
+    const todoDataUpdate = {
+      id,
+      completed: !completed,
+    };
+
+    onUpdate([todoDataUpdate]);
+  }
+
   return (
     <div data-cy="Todo" className={cn('todo', { completed: todo.completed })}>
       <label className="todo__status-label">
@@ -26,7 +37,8 @@ export default function TodoItem({
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          defaultChecked={todo.completed}
+          checked={todo.completed}
+          onChange={() => handleUpdateChange(todo.id, todo.completed)}
         />
       </label>
 

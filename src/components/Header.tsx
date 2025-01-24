@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import cn from 'classnames';
 
 import { USER_ID } from '../api/todos';
-import { OmitTodo, Todo } from '../types/Todo';
+import { Todo, TodoAdd, TodoUpdate } from '../types/Todo';
 import { ErrorOptions } from '../types/ErrorOptions';
 // #endregion
 
@@ -11,10 +11,10 @@ import { ErrorOptions } from '../types/ErrorOptions';
 type Props = {
   todos: Todo[];
   titleRef: React.RefObject<HTMLInputElement>;
-  onAdd: (newTodo: OmitTodo) => void;
+  onAdd: (todoDataAdd: TodoAdd) => void;
   onError: (newErrorOption: ErrorOptions) => void;
+  onUpdate: (todosDataUpdate: TodoUpdate[]) => void;
   isLoading: boolean;
-  loadingTodoIds: number[];
 };
 // #endregion
 
@@ -23,12 +23,12 @@ export default function Header({
   titleRef,
   onAdd,
   onError,
+  onUpdate,
   isLoading,
-  loadingTodoIds,
 }: Props) {
   useEffect(() => {
     titleRef.current?.focus();
-  }, [titleRef, isLoading, loadingTodoIds]);
+  }, [titleRef, isLoading]);
 
   const hasAllTodosCompleted = todos.every(todo => todo.completed);
 
@@ -39,14 +39,30 @@ export default function Header({
     const formattedTitle = titleRef.current?.value.trim();
 
     if (formattedTitle) {
-      onAdd({
+      const todoDataAdd = {
         title: formattedTitle,
         userId: USER_ID,
         completed: false,
-      });
+      };
+
+      onAdd(todoDataAdd);
     } else {
       onError(ErrorOptions.EMPTY);
     }
+  }
+
+  function handleToggleAll() {
+    let todosDataUpdate;
+
+    if (hasAllTodosCompleted) {
+      todosDataUpdate = todos.map(todo => ({ id: todo.id, completed: false }));
+    } else {
+      todosDataUpdate = todos
+        .filter(todo => !todo.completed)
+        .map(todo => ({ id: todo.id, completed: true }));
+    }
+
+    onUpdate(todosDataUpdate);
   }
   // #endregion
 
@@ -59,6 +75,7 @@ export default function Header({
             active: hasAllTodosCompleted,
           })}
           data-cy="ToggleAllButton"
+          onClick={handleToggleAll}
         />
       )}
 

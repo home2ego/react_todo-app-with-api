@@ -1,4 +1,4 @@
-import { OmitTodo, Todo } from '../types/Todo';
+import { Todo, TodoAdd, TodoUpdate } from '../types/Todo';
 import { client } from '../utils/fetchClient';
 
 export const USER_ID = 2265;
@@ -11,6 +11,10 @@ export const deleteTodos = (todoId: number) => {
   return client.delete<number>(`/todos/${todoId}`);
 };
 
-export const addTodos = ({ title, userId, completed }: OmitTodo) => {
-  return client.post<Todo>('/todos', { title, userId, completed });
+export const addTodos = ({ userId, title, completed }: TodoAdd) => {
+  return client.post<Todo>('/todos', { userId, title, completed });
+};
+
+export const updateTodos = ({ id, completed }: TodoUpdate) => {
+  return client.patch<Todo>(`/todos/${id}`, { completed });
 };

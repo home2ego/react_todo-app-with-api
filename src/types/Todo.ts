@@ -5,4 +5,6 @@ export type Todo = {
   completed: boolean;
 };
 
-export type OmitTodo = Omit<Todo, 'id'>;
+export type TodoAdd = Omit<Todo, 'id'>;
+
+export type TodoUpdate = Omit<Todo, 'userId' | 'title'>;
