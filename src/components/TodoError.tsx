@@ -25,8 +25,6 @@ export default function TodoError({ errorOption, onError }: Props) {
 
   return (
     <>
-      {/* DON'T use conditional rendering to hide the notification */}
-      {/* Add the 'hidden' class to hide the message smoothly */}
       <div
         data-cy="ErrorNotification"
         className={cn(
@@ -42,7 +40,6 @@ export default function TodoError({ errorOption, onError }: Props) {
           className="delete"
           onClick={() => onError(ErrorOptions.NONE)}
         />
-        {/* show only one message at a time */}
         {errorOption}
       </div>
     </>

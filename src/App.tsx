@@ -1,5 +1,5 @@
 // #region imports
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import * as todoService from './api/todos';
 import { Todo, TodoAdd, TodoUpdate } from './types/Todo';
@@ -14,7 +14,7 @@ import Footer from './components/Footer';
 import TodoError from './components/TodoError';
 // #endregion
 
-export const App: React.FC = () => {
+export default function App() {
   // #region hooks
   const [todos, setTodos] = useState<Todo[]>([]);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
@@ -22,9 +22,8 @@ export const App: React.FC = () => {
   const [filterOption, setFilterOption] = useState(FilterOptions.ALL);
   const [errorOption, setErrorOption] = useState(ErrorOptions.NONE);
 
+  const [hasFocus, setHasFocus] = useState(false);
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
-
-  const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     todoService
@@ -48,32 +47,35 @@ export const App: React.FC = () => {
   // #endregion
 
   // #region event handlers - add & delete
-  function onAdd(todoDataAdd: TodoAdd) {
-    const { userId, title, completed } = todoDataAdd;
-
+  const onAdd = (todoDataAdd: TodoAdd) => {
+    setHasFocus(true);
     setLoadingTodoIds([DEFAULT_ID]);
-    setTempTodo({ id: DEFAULT_ID, userId, title, completed });
+    setTempTodo({ ...todoDataAdd, id: DEFAULT_ID });
 
-    todoService
-      .addTodos({ userId, title, completed })
+    return todoService
+      .addTodos(todoDataAdd)
       .then(newTodo => {
         setTodos(currentTodos => [...currentTodos, newTodo]);
 
-        if (titleRef.current) {
-          titleRef.current.value = '';
-        }
+        return true;
       })
-      .catch(() => setErrorOption(ErrorOptions.ADD))
+      .catch(() => {
+        setErrorOption(ErrorOptions.ADD);
+
+        return false;
+      })
       .finally(() => {
+        setHasFocus(false);
         setLoadingTodoIds([]);
         setTempTodo(null);
       });
-  }
+  };
 
-  function onDelete(todoIds: number[]) {
+  const onDelete = (todoIds: number[]) => {
+    setHasFocus(true);
     setLoadingTodoIds(todoIds);
 
-    todoIds.map((todoId: number) =>
+    for (const todoId of todoIds) {
       todoService
         .deleteTodos(todoId)
         .then(() =>
@@ -82,29 +84,38 @@ export const App: React.FC = () => {
           ),
         )
         .catch(() => setErrorOption(ErrorOptions.DELETE))
-        .finally(() => setLoadingTodoIds([])),
-    );
-  }
+        .finally(() => {
+          setHasFocus(true);
+          setLoadingTodoIds([]);
+        });
+    }
+  };
 
-  function onUpdate(todosDataUpdate: TodoUpdate[]) {
+  const onUpdate = (todosDataUpdate: TodoUpdate[]) => {
     const todoIds = todosDataUpdate.map(todo => todo.id);
 
     setLoadingTodoIds(todoIds);
 
-    todosDataUpdate.map((todoDataUpdate: TodoUpdate) => {
-      const { id, completed } = todoDataUpdate;
-
+    return todosDataUpdate.map(todoDataUpdate => {
       return todoService
-        .updateTodos({ id, completed })
-        .then(updatedTodo =>
+        .updateTodos(todoDataUpdate)
+        .then(updatedTodo => {
           setTodos(currentTodos =>
-            currentTodos.map(todo => (todo.id === id ? updatedTodo : todo)),
-          ),
-        )
-        .catch(() => setErrorOption(ErrorOptions.UPDATE))
+            currentTodos.map(todo =>
+              todo.id === todoDataUpdate.id ? updatedTodo : todo,
+            ),
+          );
+
+          return true;
+        })
+        .catch(() => {
+          setErrorOption(ErrorOptions.UPDATE);
+
+          return false;
+        })
         .finally(() => setLoadingTodoIds([]));
     });
-  }
+  };
   // #endregion
 
   if (!todoService.USER_ID) {
@@ -118,11 +129,10 @@ export const App: React.FC = () => {
       <div className="todoapp__content">
         <Header
           todos={todos}
-          titleRef={titleRef}
+          hasFocus={hasFocus}
           onAdd={onAdd}
           onError={setErrorOption}
           onUpdate={onUpdate}
-          isLoading={loadingTodoIds.length > 0}
         />
 
         <TodoList
@@ -146,4 +156,4 @@ export const App: React.FC = () => {
       <TodoError errorOption={errorOption} onError={setErrorOption} />
     </div>
   );
-};
+}

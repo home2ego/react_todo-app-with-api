@@ -23,11 +23,11 @@ export default function Footer({
   const todosLeft = todos.filter(todo => !todo.completed);
   const todosCompleted = todos.filter(todo => todo.completed);
 
-  function handleDeleteClick() {
+  const handleDeleteClick = () => {
     const todosCompletedId = todosCompleted.map(todo => todo.id);
 
     onDelete(todosCompletedId);
-  }
+  };
 
   return (
     <footer className="todoapp__footer" data-cy="Footer">
@@ -36,9 +36,9 @@ export default function Footer({
       </span>
 
       <nav className="filter" data-cy="Filter">
-        {Object.values(FilterOptions).map((option, index) => (
+        {Object.values(FilterOptions).map(option => (
           <a
-            key={index}
+            key={option}
             href="#/"
             className={cn('filter__link', {
               selected: filterOption === option,

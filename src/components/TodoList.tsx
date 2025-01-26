@@ -10,7 +10,7 @@ type Props = {
   filteredTodos: Todo[];
   tempTodo: Todo | null;
   onDelete: (todoId: [number]) => void;
-  onUpdate: (todoDataUpdate: [TodoUpdate]) => void;
+  onUpdate: (todoDataUpdate: [TodoUpdate]) => Promise<boolean>[];
   loadingTodoIds: number[];
 };
 // #endregion

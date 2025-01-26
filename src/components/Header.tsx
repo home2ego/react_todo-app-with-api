@@ -1,5 +1,5 @@
 // #region imports
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import cn from 'classnames';
 
 import { USER_ID } from '../api/todos';
@@ -10,60 +10,80 @@ import { ErrorOptions } from '../types/ErrorOptions';
 // #region type Props
 type Props = {
   todos: Todo[];
-  titleRef: React.RefObject<HTMLInputElement>;
-  onAdd: (todoDataAdd: TodoAdd) => void;
+  hasFocus: boolean;
+  onAdd: (todoDataAdd: TodoAdd) => Promise<boolean>;
   onError: (newErrorOption: ErrorOptions) => void;
-  onUpdate: (todosDataUpdate: TodoUpdate[]) => void;
-  isLoading: boolean;
+  onUpdate: (todosDataUpdate: TodoUpdate[]) => Promise<boolean>[];
 };
 // #endregion
 
+const getTodosDataUpdate = (id: number, title: string, completed: boolean) => ({
+  id,
+  title,
+  completed,
+});
+
 export default function Header({
   todos,
-  titleRef,
+  hasFocus,
   onAdd,
   onError,
   onUpdate,
-  isLoading,
 }: Props) {
+  // #region hooks
+  const titleRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     titleRef.current?.focus();
-  }, [titleRef, isLoading]);
+  }, [hasFocus]);
+  // #endregion
 
   const hasAllTodosCompleted = todos.every(todo => todo.completed);
 
   // #region event handlers
-  function handleSubmit(e: React.FormEvent) {
+  const handleAddTodoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formattedTitle = titleRef.current?.value.trim();
+    const currentTitleRef = titleRef.current;
 
-    if (formattedTitle) {
-      const todoDataAdd = {
-        title: formattedTitle,
-        userId: USER_ID,
-        completed: false,
-      };
-
-      onAdd(todoDataAdd);
-    } else {
+    if (!currentTitleRef?.value.trim()) {
       onError(ErrorOptions.EMPTY);
-    }
-  }
 
-  function handleToggleAll() {
+      return;
+    }
+
+    currentTitleRef.disabled = true;
+
+    const todoDataAdd = {
+      title: currentTitleRef.value.trim(),
+      userId: USER_ID,
+      completed: false,
+    };
+
+    onAdd(todoDataAdd).then(response => {
+      currentTitleRef.disabled = false;
+
+      if (response) {
+        currentTitleRef.value = '';
+      }
+    });
+  };
+
+  const handleTodosToggle = () => {
     let todosDataUpdate;
 
     if (hasAllTodosCompleted) {
-      todosDataUpdate = todos.map(todo => ({ id: todo.id, completed: false }));
+      todosDataUpdate = todos.map(todo =>
+        getTodosDataUpdate(todo.id, todo.title, false),
+      );
     } else {
       todosDataUpdate = todos
         .filter(todo => !todo.completed)
-        .map(todo => ({ id: todo.id, completed: true }));
+        .map(todo => getTodosDataUpdate(todo.id, todo.title, true));
     }
 
     onUpdate(todosDataUpdate);
-  }
+  };
   // #endregion
 
   return (
@@ -75,18 +95,17 @@ export default function Header({
             active: hasAllTodosCompleted,
           })}
           data-cy="ToggleAllButton"
-          onClick={handleToggleAll}
+          onClick={handleTodosToggle}
         />
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleAddTodoSubmit}>
         <input
           data-cy="NewTodoField"
           type="text"
           className="todoapp__new-todo"
           placeholder="What needs to be done?"
           ref={titleRef}
-          disabled={isLoading}
         />
       </form>
     </header>

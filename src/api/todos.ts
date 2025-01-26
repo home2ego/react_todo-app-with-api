@@ -15,6 +15,6 @@ export const addTodos = ({ userId, title, completed }: TodoAdd) => {
   return client.post<Todo>('/todos', { userId, title, completed });
 };
 
-export const updateTodos = ({ id, completed }: TodoUpdate) => {
-  return client.patch<Todo>(`/todos/${id}`, { completed });
+export const updateTodos = ({ id, title, completed }: TodoUpdate) => {
+  return client.patch<Todo>(`/todos/${id}`, { title, completed });
 };
