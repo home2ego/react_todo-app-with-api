@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import cn from 'classnames';
 
 import { ErrorOptions } from '../types/ErrorOptions';
@@ -9,20 +8,6 @@ type Props = {
 };
 
 export default function TodoError({ errorOption, onError }: Props) {
-  useEffect(() => {
-    if (errorOption === ErrorOptions.NONE) {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      onError(ErrorOptions.NONE);
-    }, 3_000);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [errorOption, onError]);
-
   return (
     <>
       <div

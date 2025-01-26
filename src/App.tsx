@@ -31,6 +31,20 @@ export default function App() {
       .then(setTodos)
       .catch(() => setErrorOption(ErrorOptions.LOAD));
   }, []);
+
+  useEffect(() => {
+    if (errorOption === ErrorOptions.NONE) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setErrorOption(ErrorOptions.NONE);
+    }, 3_000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [errorOption]);
   // #endregion
 
   // #region filtered todos
