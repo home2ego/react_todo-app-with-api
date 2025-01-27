@@ -21,12 +21,12 @@ export default function TodoItem({
   const { id, title, completed } = todo;
 
   const [editTitle, setEditTitle] = useState(title);
-  const [hasEditTitle, setHasEditTitle] = useState(false);
+  const [hasEditTitleFocus, setHasEditTitleFocus] = useState(false);
   const titleEditRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     titleEditRef.current?.focus();
-  }, [hasEditTitle]);
+  }, [hasEditTitleFocus]);
 
   const handleTodoUpdate = () => {
     const formattedEditTitle = editTitle.trim();
@@ -39,7 +39,7 @@ export default function TodoItem({
 
     if (formattedEditTitle !== title) {
       setEditTitle(formattedEditTitle);
-      setHasEditTitle(false);
+      setHasEditTitleFocus(false);
 
       const preparedEditTodoUpdate = {
         id,
@@ -50,13 +50,13 @@ export default function TodoItem({
       onUpdate([preparedEditTodoUpdate]).forEach(promise => {
         promise.then(response => {
           if (!response) {
-            setHasEditTitle(true);
+            setHasEditTitleFocus(true);
           }
         });
       });
     } else {
       setEditTitle(title);
-      setHasEditTitle(false);
+      setHasEditTitleFocus(false);
     }
   };
 
@@ -75,7 +75,7 @@ export default function TodoItem({
   const handleTodoKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setEditTitle(title);
-      setHasEditTitle(false);
+      setHasEditTitleFocus(false);
     }
   };
 
@@ -91,7 +91,7 @@ export default function TodoItem({
         />
       </label>
 
-      {hasEditTitle ? (
+      {hasEditTitleFocus ? (
         <form onSubmit={handleEditTodoSubmit}>
           <input
             data-cy="TodoTitleField"
@@ -110,7 +110,7 @@ export default function TodoItem({
           <span
             data-cy="TodoTitle"
             className="todo__title"
-            onDoubleClick={() => setHasEditTitle(true)}
+            onDoubleClick={() => setHasEditTitleFocus(true)}
           >
             {editTitle}
           </span>
