@@ -1,11 +1,8 @@
-// #region imports
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Todo, TodoUpdate } from '../types/Todo';
 import { DEFAULT_ID } from '../constants/DEFAULT_ID';
 import TodoItem from './TodoItem';
-// #endregion
 
-// #region type Props
 type Props = {
   filteredTodos: Todo[];
   tempTodo: Todo | null;
@@ -13,7 +10,6 @@ type Props = {
   onUpdate: (todoDataUpdate: [TodoUpdate]) => Promise<boolean>[];
   loadingTodoIds: number[];
 };
-// #endregion
 
 export default function TodoList({
   filteredTodos,

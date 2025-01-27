@@ -1,5 +1,4 @@
-// #region imports
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import * as todoService from './api/todos';
 import { Todo, TodoAdd, TodoUpdate } from './types/Todo';
@@ -12,18 +11,19 @@ import Header from './components/Header';
 import TodoList from './components/TodoList';
 import Footer from './components/Footer';
 import TodoError from './components/TodoError';
-// #endregion
 
 export default function App() {
-  // #region hooks
   const [todos, setTodos] = useState<Todo[]>([]);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-
   const [filterOption, setFilterOption] = useState(FilterOptions.ALL);
   const [errorOption, setErrorOption] = useState(ErrorOptions.NONE);
-
   const [hasFocus, setHasFocus] = useState(false);
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, [hasFocus]);
 
   useEffect(() => {
     todoService
@@ -45,9 +45,7 @@ export default function App() {
       clearTimeout(timeoutId);
     };
   }, [errorOption]);
-  // #endregion
 
-  // #region filtered todos
   const filteredTodos = todos.filter(todo => {
     switch (filterOption) {
       case FilterOptions.ACTIVE:
@@ -58,31 +56,31 @@ export default function App() {
         return true;
     }
   });
-  // #endregion
 
-  // #region event handlers - add & delete
   const onAdd = (todoDataAdd: TodoAdd) => {
-    setHasFocus(true);
-    setLoadingTodoIds([DEFAULT_ID]);
-    setTempTodo({ ...todoDataAdd, id: DEFAULT_ID });
+    const currentTitleRef = titleRef.current;
 
-    return todoService
-      .addTodos(todoDataAdd)
-      .then(newTodo => {
-        setTodos(currentTodos => [...currentTodos, newTodo]);
+    if (currentTitleRef) {
+      currentTitleRef.disabled = true;
+      setHasFocus(true);
+      setLoadingTodoIds([DEFAULT_ID]);
+      setTempTodo({ ...todoDataAdd, id: DEFAULT_ID });
 
-        return true;
-      })
-      .catch(() => {
-        setErrorOption(ErrorOptions.ADD);
+      todoService
+        .addTodos(todoDataAdd)
+        .then(newTodo => {
+          setTodos(currentTodos => [...currentTodos, newTodo]);
 
-        return false;
-      })
-      .finally(() => {
-        setHasFocus(false);
-        setLoadingTodoIds([]);
-        setTempTodo(null);
-      });
+          currentTitleRef.value = '';
+        })
+        .catch(() => setErrorOption(ErrorOptions.ADD))
+        .finally(() => {
+          currentTitleRef.disabled = false;
+          setHasFocus(false);
+          setLoadingTodoIds([]);
+          setTempTodo(null);
+        });
+    }
   };
 
   const onDelete = (todoIds: number[]) => {
@@ -99,7 +97,7 @@ export default function App() {
         )
         .catch(() => setErrorOption(ErrorOptions.DELETE))
         .finally(() => {
-          setHasFocus(true);
+          setHasFocus(false);
           setLoadingTodoIds([]);
         });
     }
@@ -130,7 +128,6 @@ export default function App() {
         .finally(() => setLoadingTodoIds([]));
     });
   };
-  // #endregion
 
   if (!todoService.USER_ID) {
     return <UserWarning />;
@@ -143,7 +140,7 @@ export default function App() {
       <div className="todoapp__content">
         <Header
           todos={todos}
-          hasFocus={hasFocus}
+          titleRef={titleRef}
           onAdd={onAdd}
           onError={setErrorOption}
           onUpdate={onUpdate}

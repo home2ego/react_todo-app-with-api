@@ -1,18 +1,13 @@
-// #region imports
 import cn from 'classnames';
-
 import { Todo } from '../types/Todo';
 import { FilterOptions } from '../types/FilterOptions';
-// #endregion
 
-// #region type Props
 type Props = {
   todos: Todo[];
   filterOption: FilterOptions;
   onFilter: (newFilterOption: FilterOptions) => void;
   onDelete: (todoIds: number[]) => void;
 };
-// #endregion
 
 export default function Footer({
   todos,
