@@ -17,13 +17,13 @@ export default function App() {
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [filterOption, setFilterOption] = useState(FilterOptions.ALL);
   const [errorOption, setErrorOption] = useState(ErrorOptions.NONE);
-  const [hasFocus, setHasFocus] = useState(false);
+  const [hasTitleFocus, setHasTitleFocus] = useState(false);
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     titleRef.current?.focus();
-  }, [hasFocus]);
+  }, [hasTitleFocus]);
 
   useEffect(() => {
     todoService
@@ -62,7 +62,7 @@ export default function App() {
 
     if (currentTitleRef) {
       currentTitleRef.disabled = true;
-      setHasFocus(true);
+      setHasTitleFocus(true);
       setLoadingTodoIds([DEFAULT_ID]);
       setTempTodo({ ...todoDataAdd, id: DEFAULT_ID });
 
@@ -76,7 +76,7 @@ export default function App() {
         .catch(() => setErrorOption(ErrorOptions.ADD))
         .finally(() => {
           currentTitleRef.disabled = false;
-          setHasFocus(false);
+          setHasTitleFocus(false);
           setLoadingTodoIds([]);
           setTempTodo(null);
         });
@@ -84,7 +84,7 @@ export default function App() {
   };
 
   const onDelete = (todoIds: number[]) => {
-    setHasFocus(true);
+    setHasTitleFocus(true);
     setLoadingTodoIds(todoIds);
 
     for (const todoId of todoIds) {
@@ -97,7 +97,7 @@ export default function App() {
         )
         .catch(() => setErrorOption(ErrorOptions.DELETE))
         .finally(() => {
-          setHasFocus(false);
+          setHasTitleFocus(false);
           setLoadingTodoIds([]);
         });
     }
@@ -141,8 +141,8 @@ export default function App() {
         <Header
           todos={todos}
           titleRef={titleRef}
+          setErrorOption={setErrorOption}
           onAdd={onAdd}
-          onError={setErrorOption}
           onUpdate={onUpdate}
         />
 
@@ -158,13 +158,13 @@ export default function App() {
           <Footer
             todos={todos}
             filterOption={filterOption}
-            onFilter={setFilterOption}
+            setFilterOption={setFilterOption}
             onDelete={onDelete}
           />
         )}
       </div>
 
-      <TodoError errorOption={errorOption} onError={setErrorOption} />
+      <TodoError errorOption={errorOption} setErrorOption={setErrorOption} />
     </div>
   );
 }

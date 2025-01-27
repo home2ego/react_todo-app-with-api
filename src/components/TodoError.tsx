@@ -3,10 +3,10 @@ import { ErrorOptions } from '../types/ErrorOptions';
 
 type Props = {
   errorOption: ErrorOptions;
-  onError: (newErrorOption: ErrorOptions) => void;
+  setErrorOption: (newErrorOption: ErrorOptions) => void;
 };
 
-export default function TodoError({ errorOption, onError }: Props) {
+export default function TodoError({ errorOption, setErrorOption }: Props) {
   return (
     <>
       <div
@@ -22,7 +22,7 @@ export default function TodoError({ errorOption, onError }: Props) {
           data-cy="HideErrorButton"
           type="button"
           className="delete"
-          onClick={() => onError(ErrorOptions.NONE)}
+          onClick={() => setErrorOption(ErrorOptions.NONE)}
         />
         {errorOption}
       </div>

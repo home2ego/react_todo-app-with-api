@@ -5,14 +5,14 @@ import { FilterOptions } from '../types/FilterOptions';
 type Props = {
   todos: Todo[];
   filterOption: FilterOptions;
-  onFilter: (newFilterOption: FilterOptions) => void;
+  setFilterOption: (newFilterOption: FilterOptions) => void;
   onDelete: (todoIds: number[]) => void;
 };
 
 export default function Footer({
   todos,
   filterOption,
-  onFilter,
+  setFilterOption,
   onDelete,
 }: Props) {
   const todosLeft = todos.filter(todo => !todo.completed);
@@ -39,7 +39,7 @@ export default function Footer({
               selected: filterOption === option,
             })}
             data-cy={'FilterLink' + option}
-            onClick={() => onFilter(option)}
+            onClick={() => setFilterOption(option)}
           >
             {option}
           </a>

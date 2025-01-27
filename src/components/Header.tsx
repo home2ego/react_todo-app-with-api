@@ -6,16 +6,16 @@ import { ErrorOptions } from '../types/ErrorOptions';
 type Props = {
   todos: Todo[];
   titleRef: React.RefObject<HTMLInputElement>;
+  setErrorOption: (newErrorOption: ErrorOptions) => void;
   onAdd: (todoDataAdd: TodoAdd) => void;
-  onError: (newErrorOption: ErrorOptions) => void;
   onUpdate: (todosDataUpdate: TodoUpdate[]) => Promise<boolean>[];
 };
 
 export default function Header({
   todos,
   titleRef,
+  setErrorOption,
   onAdd,
-  onError,
   onUpdate,
 }: Props) {
   const hasAllTodosCompleted = todos.every(todo => todo.completed);
@@ -32,7 +32,7 @@ export default function Header({
         completed: false,
       });
     } else {
-      onError(ErrorOptions.EMPTY);
+      setErrorOption(ErrorOptions.EMPTY);
     }
   };
 
