@@ -1,17 +1,17 @@
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { Todo, TodoUpdate } from '../types/Todo';
+import { Todo } from '../types/Todo';
 import { DEFAULT_ID } from '../constants/DEFAULT_ID';
-import TodoItem from './TodoItem';
+import TodoItemMemo from './TodoItem';
 
 type Props = {
   filteredTodos: Todo[];
   tempTodo: Todo | null;
   onDelete: (todoId: [number]) => void;
-  onUpdate: (todoDataUpdate: [TodoUpdate]) => Promise<void>;
+  onUpdate: (todoDataUpdate: [Todo]) => Promise<Todo | null>[];
   loadingTodoIds: number[];
 };
 
-export default function TodoList({
+export default function TodoListMemo({
   filteredTodos,
   tempTodo,
   onDelete,
@@ -23,7 +23,7 @@ export default function TodoList({
       <TransitionGroup>
         {filteredTodos.map(todo => (
           <CSSTransition key={todo.id} timeout={300} classNames="item">
-            <TodoItem
+            <TodoItemMemo
               todo={todo}
               onDelete={onDelete}
               onUpdate={onUpdate}
@@ -33,8 +33,8 @@ export default function TodoList({
         ))}
 
         {tempTodo && (
-          <CSSTransition key={0} timeout={300} classNames="temp-item">
-            <TodoItem
+          <CSSTransition timeout={300} classNames="temp-item">
+            <TodoItemMemo
               todo={tempTodo}
               isLoading={loadingTodoIds.includes(DEFAULT_ID)}
             />

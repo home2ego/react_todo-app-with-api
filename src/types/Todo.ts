@@ -6,5 +6,3 @@ export type Todo = {
 };
 
 export type TodoAdd = Omit<Todo, 'id'>;
-
-export type TodoUpdate = Omit<Todo, 'userId'>;

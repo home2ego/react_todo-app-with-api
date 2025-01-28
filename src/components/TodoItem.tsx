@@ -1,26 +1,24 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cn from 'classnames';
-import { Todo, TodoUpdate } from '../types/Todo';
+import { Todo } from '../types/Todo';
 
 type Props = {
   todo: Todo;
   onDelete?: (todoId: [number]) => void;
-  onUpdate?: (todoDataUpdate: [TodoUpdate]) => Promise<void>;
+  onUpdate?: (todoDataUpdate: [Todo]) => Promise<Todo | null>[];
   isLoading: boolean;
 };
 
-export default function TodoItem({
+function TodoItem({
   todo,
   onDelete = () => {},
-  onUpdate = async () => {},
+  onUpdate = () => [],
   isLoading,
 }: Props) {
-  const { id, title, completed } = todo;
-
-  const [editTitle, setEditTitle] = useState(title);
+  const [editTitle, setEditTitle] = useState(todo.title);
   const [hasEditTitleFocus, setHasEditTitleFocus] = useState(false);
   const titleEditRef = useRef<HTMLInputElement>(null);
 
@@ -32,31 +30,26 @@ export default function TodoItem({
     const formattedEditTitle = editTitle.trim();
 
     if (!formattedEditTitle) {
-      onDelete([id]);
+      onDelete([todo.id]);
 
       return;
     }
 
-    if (formattedEditTitle !== title) {
+    if (formattedEditTitle !== todo.title) {
       setEditTitle(formattedEditTitle);
       setHasEditTitleFocus(false);
 
-      const preparedEditTodoUpdate = {
-        id,
-        title: formattedEditTitle,
-        completed,
-      };
+      const preparedEditTodoUpdate = { ...todo, title: formattedEditTitle };
 
-      onUpdate([preparedEditTodoUpdate]);
-      // .forEach(promise => {
-      //   promise.then(response => {
-      //     if (!response) {
-      //       setHasEditTitleFocus(true);
-      //     }
-      //   });
-      // });
+      onUpdate([preparedEditTodoUpdate]).forEach(promise => {
+        promise.then(response => {
+          if (!response) {
+            setHasEditTitleFocus(true);
+          }
+        });
+      });
     } else {
-      setEditTitle(title);
+      setEditTitle(todo.title);
       setHasEditTitleFocus(false);
     }
   };
@@ -68,26 +61,26 @@ export default function TodoItem({
   };
 
   const handleTodoToggle = () => {
-    const preparedToggleTodoUpdate = { id, title, completed: !completed };
+    const preparedToggleTodoUpdate = { ...todo, completed: !todo.completed };
 
     onUpdate([preparedToggleTodoUpdate]);
   };
 
   const handleTodoKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
-      setEditTitle(title);
+      setEditTitle(todo.title);
       setHasEditTitleFocus(false);
     }
   };
 
   return (
-    <div data-cy="Todo" className={cn('todo', { completed: completed })}>
+    <div data-cy="Todo" className={cn('todo', { completed: todo.completed })}>
       <label className="todo__status-label">
         <input
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          checked={completed}
+          checked={todo.completed}
           onChange={handleTodoToggle}
         />
       </label>
@@ -120,7 +113,7 @@ export default function TodoItem({
             type="button"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={() => onDelete([id])}
+            onClick={() => onDelete([todo.id])}
           >
             ×
           </button>
@@ -139,3 +132,7 @@ export default function TodoItem({
     </div>
   );
 }
+
+const TodoItemMemo = React.memo(TodoItem);
+
+export default TodoItemMemo;

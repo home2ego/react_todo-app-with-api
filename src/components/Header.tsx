@@ -1,7 +1,7 @@
 import React from 'react';
 import cn from 'classnames';
 import { USER_ID } from '../api/todos';
-import { Todo, TodoAdd, TodoUpdate } from '../types/Todo';
+import { Todo, TodoAdd } from '../types/Todo';
 import { ErrorOptions } from '../types/ErrorOptions';
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
   titleRef: React.RefObject<HTMLInputElement>;
   setErrorOption: (newErrorOption: ErrorOptions) => void;
   onAdd: (todoDataAdd: TodoAdd) => void;
-  onUpdate: (todosDataUpdate: TodoUpdate[]) => Promise<void>;
+  onUpdate: (todosDataUpdate: Todo[]) => Promise<Todo | null>[];
 };
 
 function Header({ todos, titleRef, setErrorOption, onAdd, onUpdate }: Props) {
@@ -35,19 +35,11 @@ function Header({ todos, titleRef, setErrorOption, onAdd, onUpdate }: Props) {
     let todosDataUpdate;
 
     if (hasAllTodosCompleted) {
-      todosDataUpdate = todos.map(todo => {
-        const { id, title } = todo;
-
-        return { id, title, completed: false };
-      });
+      todosDataUpdate = todos.map(todo => ({ ...todo, completed: false }));
     } else {
       todosDataUpdate = todos
         .filter(todo => !todo.completed)
-        .map(todo => {
-          const { id, title } = todo;
-
-          return { id, title, completed: true };
-        });
+        .map(todo => ({ ...todo, completed: true }));
     }
 
     onUpdate(todosDataUpdate);

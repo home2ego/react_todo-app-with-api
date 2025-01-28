@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as todoService from './api/todos';
-import { Todo, TodoAdd, TodoUpdate } from './types/Todo';
+import { Todo, TodoAdd } from './types/Todo';
 import { FilterOptions } from './types/FilterOptions';
 import { ErrorOptions } from './types/ErrorOptions';
 import { DEFAULT_ID } from './constants/DEFAULT_ID';
@@ -87,52 +87,58 @@ export default function App() {
     setHasTitleFocus(true);
     setLoadingTodoIds(todoIds);
 
-    Promise.all(
-      todoIds.map(todoId =>
-        todoService
-          .deleteTodos(todoId)
-          .then(() => todoId)
-          .catch(() => setErrorOption(ErrorOptions.DELETE)),
-      ),
-    )
-      .then(deletedTodoIds =>
-        setTodos(currentTodos =>
-          currentTodos.filter(todo => !deletedTodoIds.includes(todo.id)),
-        ),
-      )
+    const deletePromises = todoIds.map(todoId => {
+      return todoService
+        .deleteTodos(todoId)
+        .then(() => todoId)
+        .catch(() => setErrorOption(ErrorOptions.DELETE));
+    });
+
+    Promise.all(deletePromises)
+      .then(deletedTodoIds => {
+        setTodos(currentTodos => {
+          return currentTodos.filter(todo => !deletedTodoIds.includes(todo.id));
+        });
+      })
       .finally(() => {
         setHasTitleFocus(false);
         setLoadingTodoIds([]);
       });
   }, []);
 
-  const onUpdate = useCallback((todosDataUpdate: TodoUpdate[]) => {
+  const onUpdate = useCallback((todosDataUpdate: Todo[]) => {
     const todoIds = todosDataUpdate.map(todo => todo.id);
 
     setLoadingTodoIds(todoIds);
 
-    return Promise.all(
-      todosDataUpdate.map(todoDataUpdate =>
-        todoService
-          .updateTodos(todoDataUpdate)
-          .then(updatedTodos => updatedTodos)
-          .catch(() => setErrorOption(ErrorOptions.UPDATE)),
-      ),
-    )
-      .then(updatedTodos =>
+    const updatePromises = todosDataUpdate.map(todoDataUpdate => {
+      return todoService
+        .updateTodos(todoDataUpdate)
+        .then(updatedTodo => updatedTodo)
+        .catch(() => {
+          setErrorOption(ErrorOptions.UPDATE);
+
+          return null;
+        });
+    });
+
+    Promise.all(updatePromises)
+      .then(updatedTodos => {
         setTodos(currentTodos => {
           return currentTodos.map(todo => {
             const newTodo = updatedTodos.find(updatedTodo => {
-              return updatedTodo && updatedTodo.id === todo.id;
+              return updatedTodo?.id === todo.id;
             });
 
             return newTodo ?? todo;
           });
-        }),
-      )
+        });
+      })
       .finally(() => {
         setLoadingTodoIds([]);
       });
+
+    return updatePromises;
   }, []);
 
   if (!todoService.USER_ID) {
