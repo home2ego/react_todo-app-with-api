@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as todoService from './api/todos';
 import { Todo, TodoAdd, TodoUpdate } from './types/Todo';
@@ -7,9 +7,9 @@ import { ErrorOptions } from './types/ErrorOptions';
 import { DEFAULT_ID } from './constants/DEFAULT_ID';
 
 import UserWarning from './UserWarning';
-import Header from './components/Header';
+import HeaderMemo from './components/Header';
+import FooterMemo from './components/Footer';
 import TodoList from './components/TodoList';
-import Footer from './components/Footer';
 import TodoError from './components/TodoError';
 
 export default function App() {
@@ -57,7 +57,7 @@ export default function App() {
     }
   });
 
-  const onAdd = (todoDataAdd: TodoAdd) => {
+  const onAdd = useCallback((todoDataAdd: TodoAdd) => {
     const currentTitleRef = titleRef.current;
 
     if (currentTitleRef) {
@@ -81,53 +81,59 @@ export default function App() {
           setTempTodo(null);
         });
     }
-  };
+  }, []);
 
-  const onDelete = (todoIds: number[]) => {
+  const onDelete = useCallback((todoIds: number[]) => {
     setHasTitleFocus(true);
     setLoadingTodoIds(todoIds);
 
-    for (const todoId of todoIds) {
-      todoService
-        .deleteTodos(todoId)
-        .then(() =>
-          setTodos(currentTodos =>
-            currentTodos.filter(todo => todo.id !== todoId),
-          ),
-        )
-        .catch(() => setErrorOption(ErrorOptions.DELETE))
-        .finally(() => {
-          setHasTitleFocus(false);
-          setLoadingTodoIds([]);
-        });
-    }
-  };
+    Promise.all(
+      todoIds.map(todoId =>
+        todoService
+          .deleteTodos(todoId)
+          .then(() => todoId)
+          .catch(() => setErrorOption(ErrorOptions.DELETE)),
+      ),
+    )
+      .then(deletedTodoIds =>
+        setTodos(currentTodos =>
+          currentTodos.filter(todo => !deletedTodoIds.includes(todo.id)),
+        ),
+      )
+      .finally(() => {
+        setHasTitleFocus(false);
+        setLoadingTodoIds([]);
+      });
+  }, []);
 
-  const onUpdate = (todosDataUpdate: TodoUpdate[]) => {
+  const onUpdate = useCallback((todosDataUpdate: TodoUpdate[]) => {
     const todoIds = todosDataUpdate.map(todo => todo.id);
 
     setLoadingTodoIds(todoIds);
 
-    return todosDataUpdate.map(todoDataUpdate => {
-      return todoService
-        .updateTodos(todoDataUpdate)
-        .then(updatedTodo => {
-          setTodos(currentTodos =>
-            currentTodos.map(todo =>
-              todo.id === todoDataUpdate.id ? updatedTodo : todo,
-            ),
-          );
+    return Promise.all(
+      todosDataUpdate.map(todoDataUpdate =>
+        todoService
+          .updateTodos(todoDataUpdate)
+          .then(updatedTodos => updatedTodos)
+          .catch(() => setErrorOption(ErrorOptions.UPDATE)),
+      ),
+    )
+      .then(updatedTodos =>
+        setTodos(currentTodos => {
+          return currentTodos.map(todo => {
+            const newTodo = updatedTodos.find(updatedTodo => {
+              return updatedTodo && updatedTodo.id === todo.id;
+            });
 
-          return true;
-        })
-        .catch(() => {
-          setErrorOption(ErrorOptions.UPDATE);
-
-          return false;
-        })
-        .finally(() => setLoadingTodoIds([]));
-    });
-  };
+            return newTodo ?? todo;
+          });
+        }),
+      )
+      .finally(() => {
+        setLoadingTodoIds([]);
+      });
+  }, []);
 
   if (!todoService.USER_ID) {
     return <UserWarning />;
@@ -138,7 +144,7 @@ export default function App() {
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
-        <Header
+        <HeaderMemo
           todos={todos}
           titleRef={titleRef}
           setErrorOption={setErrorOption}
@@ -155,7 +161,7 @@ export default function App() {
         />
 
         {todos.length > 0 && (
-          <Footer
+          <FooterMemo
             todos={todos}
             filterOption={filterOption}
             setFilterOption={setFilterOption}

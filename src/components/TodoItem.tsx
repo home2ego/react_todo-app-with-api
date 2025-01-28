@@ -8,14 +8,14 @@ import { Todo, TodoUpdate } from '../types/Todo';
 type Props = {
   todo: Todo;
   onDelete?: (todoId: [number]) => void;
-  onUpdate?: (todoDataUpdate: [TodoUpdate]) => Promise<boolean>[];
+  onUpdate?: (todoDataUpdate: [TodoUpdate]) => Promise<void>;
   isLoading: boolean;
 };
 
 export default function TodoItem({
   todo,
   onDelete = () => {},
-  onUpdate = () => [],
+  onUpdate = async () => {},
   isLoading,
 }: Props) {
   const { id, title, completed } = todo;
@@ -47,13 +47,14 @@ export default function TodoItem({
         completed,
       };
 
-      onUpdate([preparedEditTodoUpdate]).forEach(promise => {
-        promise.then(response => {
-          if (!response) {
-            setHasEditTitleFocus(true);
-          }
-        });
-      });
+      onUpdate([preparedEditTodoUpdate]);
+      // .forEach(promise => {
+      //   promise.then(response => {
+      //     if (!response) {
+      //       setHasEditTitleFocus(true);
+      //     }
+      //   });
+      // });
     } else {
       setEditTitle(title);
       setHasEditTitleFocus(false);

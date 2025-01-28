@@ -1,3 +1,4 @@
+import React from 'react';
 import cn from 'classnames';
 import { Todo } from '../types/Todo';
 import { FilterOptions } from '../types/FilterOptions';
@@ -9,12 +10,7 @@ type Props = {
   onDelete: (todoIds: number[]) => void;
 };
 
-export default function Footer({
-  todos,
-  filterOption,
-  setFilterOption,
-  onDelete,
-}: Props) {
+function Footer({ todos, filterOption, setFilterOption, onDelete }: Props) {
   const todosLeft = todos.filter(todo => !todo.completed);
   const todosCompleted = todos.filter(todo => todo.completed);
 
@@ -58,3 +54,7 @@ export default function Footer({
     </footer>
   );
 }
+
+const FooterMemo = React.memo(Footer);
+
+export default FooterMemo;

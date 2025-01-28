@@ -1,3 +1,4 @@
+import React from 'react';
 import cn from 'classnames';
 import { USER_ID } from '../api/todos';
 import { Todo, TodoAdd, TodoUpdate } from '../types/Todo';
@@ -8,16 +9,10 @@ type Props = {
   titleRef: React.RefObject<HTMLInputElement>;
   setErrorOption: (newErrorOption: ErrorOptions) => void;
   onAdd: (todoDataAdd: TodoAdd) => void;
-  onUpdate: (todosDataUpdate: TodoUpdate[]) => Promise<boolean>[];
+  onUpdate: (todosDataUpdate: TodoUpdate[]) => Promise<void>;
 };
 
-export default function Header({
-  todos,
-  titleRef,
-  setErrorOption,
-  onAdd,
-  onUpdate,
-}: Props) {
+function Header({ todos, titleRef, setErrorOption, onAdd, onUpdate }: Props) {
   const hasAllTodosCompleted = todos.every(todo => todo.completed);
 
   const handleAddTodoSubmit = (e: React.FormEvent) => {
@@ -83,3 +78,7 @@ export default function Header({
     </header>
   );
 }
+
+const HeaderMemo = React.memo(Header);
+
+export default HeaderMemo;
